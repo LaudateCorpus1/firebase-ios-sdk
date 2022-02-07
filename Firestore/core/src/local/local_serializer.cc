@@ -27,6 +27,7 @@
 #include "Firestore/Protos/nanopb/firestore/local/mutation.nanopb.h"
 #include "Firestore/Protos/nanopb/firestore/local/target.nanopb.h"
 #include "Firestore/Protos/nanopb/google/firestore/v1/document.nanopb.h"
+#include "Firestore/Protos/nanopb/google/firestore/v1/write.nanopb.h"
 #include "Firestore/core/src/bundle/bundle_metadata.h"
 #include "Firestore/core/src/bundle/named_query.h"
 #include "Firestore/core/src/core/query.h"
@@ -451,6 +452,16 @@ BundledQuery LocalSerializer::DecodeBundledQuery(
       rpc_serializer_.DecodeStructuredQuery(reader->context(), query.parent,
                                             query.structured_query),
       limit_type);
+}
+
+model::Mutation LocalSerializer::DecodeMutation(
+    nanopb::Reader* reader, google_firestore_v1_Write& mutation) const {
+  return rpc_serializer_.DecodeMutation(reader->context(), mutation);
+}
+
+google_firestore_v1_Write LocalSerializer::EncodeMutation(
+    const model::Mutation& mutation) const {
+  return rpc_serializer_.EncodeMutation(mutation);
 }
 
 }  // namespace local
