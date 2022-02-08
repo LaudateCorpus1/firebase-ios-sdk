@@ -19,6 +19,7 @@
 
 #include "Firestore/core/src/immutable/sorted_map.h"
 #include "Firestore/core/src/local/document_overlay_cache.h"
+#include "Firestore/core/src/local/leveldb_document_overlay_cache.h"
 #include "Firestore/core/src/local/memory_document_overlay_cache.h"
 #include "Firestore/core/src/model/delete_mutation.h"
 #include "Firestore/core/src/model/document_key.h"
@@ -63,9 +64,14 @@ TEST(DocumentOverlayCacheTest, TypeTraits) {
 template <class T>
 std::unique_ptr<DocumentOverlayCache> CreateDocumentOverlayCache();
 
-template <class T>
-std::unique_ptr<DocumentOverlayCache> CreateDocumentOverlayCache() {
+template <>
+std::unique_ptr<DocumentOverlayCache> CreateDocumentOverlayCache<MemoryDocumentOverlayCache>() {
   return absl::make_unique<MemoryDocumentOverlayCache>();
+}
+
+template <>
+std::unique_ptr<DocumentOverlayCache> CreateDocumentOverlayCache<LevelDbDocumentOverlayCache>() {
+  return absl::make_unique<LevelDbDocumentOverlayCache>();
 }
 
 template <typename T>
@@ -98,8 +104,9 @@ class DocumentOverlayCacheTest : public ::testing::Test {
   std::unique_ptr<DocumentOverlayCache> cache_;
 };
 
-TYPED_TEST_SUITE(DocumentOverlayCacheTest,
-                 ::testing::Types<MemoryDocumentOverlayCache>);
+using DocumentOverlayCacheTypes = ::testing::Types<MemoryDocumentOverlayCache, LevelDbDocumentOverlayCache>;
+
+TYPED_TEST_SUITE(DocumentOverlayCacheTest, DocumentOverlayCacheTypes);
 
 void VerifyOverlayContains(
     const DocumentOverlayCache::OverlayByDocumentKeyMap& overlays,
